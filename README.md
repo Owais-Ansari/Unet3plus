@@ -25,7 +25,7 @@ UNet3+
 - pandas==2.0.1
 
 
-**For academic communication only, if there is a quote, please inform the original author!**
+**For academic communication only**
 
 
 augemnetation are tuned for the histpathological images
