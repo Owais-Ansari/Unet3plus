@@ -39,11 +39,12 @@ augemnetation are tuned for the histpathological images
 	- Gradient Accumalation
 	- 
 	
-**Usage**	
+**Usage**
+```shell script
 from utils.models import Unet3plus, Unet3plusGlcm
 
 model = Unet3plus(n_classes = num_classes)
-	
+```
 ## Run locally
 **Note : Use Python 3**
 
@@ -52,7 +53,7 @@ model = Unet3plus(n_classes = num_classes)
 ### Training
 
 ```shell script
-> python train.py 
+python train.py 
 
 
 Train the UNet on images and target masks
