@@ -1,0 +1,1 @@
+python train.py --gpu 1 --train-batch 4 --epochs 50 --weight-decay 0.000001 --checkpoint '13-April' --ignore_label 5 --label_sm 0.08 --lr 5e-4 --accum_iter 8 --size 512
