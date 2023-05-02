@@ -35,8 +35,10 @@ augemnetation are tuned for the histpathological images
 	
 
 **Training methodlogy**
-	- Mixed Precision \n
+'''shell script
+	- Mixed Precision 
 	- Gradient Accumalation
+'''
 	
 	
 **Usage**
