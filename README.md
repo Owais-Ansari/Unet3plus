@@ -9,20 +9,20 @@ UNet3+
 
 ## Dependencies
 
-- Python 3.9
+- Python == 3.9
 - PyTorch >= 1.10.2
 - Torchvision >= 0.11.3
 - CUDA >= cu113
 - numpy >= 1.20.3
-- Pillow 8.3.1
-- tensorboard 2.9.1
-- tqdm==4.62.3
-- scikit-learn ==1.2.2
-- timm==0.6.13
-- opencv-python==4.7.0.72
-- albumentations==1.3.0
-- segmentation-models-pytorch==0.3.2
-- pandas==2.0.1
+- Pillow >= 8.3.1
+- tensorboard >= 2.9.1
+- tqdm == 4.62.3
+- scikit-learn == 1.2.2
+- timm == 0.6.13
+- opencv-python == 4.7.0.72
+- albumentations == 1.3.0
+- segmentation-models-pytorch ==0.3.2
+- pandas == 2.0.1
 
 
 **For academic communication only**
