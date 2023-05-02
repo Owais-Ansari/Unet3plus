@@ -1,5 +1,11 @@
-# UNet3plus_pth
+# UNet3plus
 UNet3+
+
+## Reference
+
+[[2015] U-Net: Convolutional Networks for Biomedical Image Segmentation (MICCAI)](https://arxiv.org/pdf/1505.04597.pdf)
+
+[[2020] UNET 3+: A Full-Scale Connected UNet for Medical Image Segmentation (ICASSP 2020)](https://arxiv.org/pdf/2004.08790.pdf)
 
 ## Dependencies
 
@@ -81,8 +87,4 @@ The ignore label in mask should have label value = 255
 
 
 
-## Reference
 
-[[2015] U-Net: Convolutional Networks for Biomedical Image Segmentation (MICCAI)](https://arxiv.org/pdf/1505.04597.pdf)
-
-[[2020] UNET 3+: A Full-Scale Connected UNet for Medical Image Segmentation (ICASSP 2020)](https://arxiv.org/pdf/2004.08790.pdf)
