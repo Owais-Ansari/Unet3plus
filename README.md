@@ -35,9 +35,9 @@ augemnetation are tuned for the histpathological images
 	
 
 **Training methodlogy**
-	- Mixed Precision
+	- Mixed Precision \n
 	- Gradient Accumalation
-	- 
+	
 	
 **Usage**
 ```shell script
@@ -72,8 +72,8 @@ optional arguments:
 	seed = 42
 	clip = None # else 0.99999
 	size = 512
-	ignore_label = 5
-	accum_iter=4
+	ignore_label = 5 # should keep same as num_classes
+	accum_iter=1 #Gradient Accumalation is True if accum_iter>1
 	label_sm = 0.08
 	freeze_backbone = False
 	num_classes  = 5
