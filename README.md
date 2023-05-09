@@ -38,6 +38,7 @@ augmentation are tuned for the histpathological images
 
 	- Mixed Precision 
 	- Gradient Accumalation
+	- Label Smoothing
 
 	
 	
