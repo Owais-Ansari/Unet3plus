@@ -28,7 +28,7 @@ UNet3+
 **For academic communication only**
 
 
-augemnetation are tuned for the histpathological images
+augmentation are tuned for the histpathological images
 	- Equalize, HueSaturationValue, ColorJitter, Blur, RandomBrightnessContrast, ChannelShuffle
 	- Transpose, RandomRotate90, Flip
 	
