@@ -234,7 +234,7 @@ def main():
         
         #save model 
         if test_dice > best_dice:
-            best_dice = max(test_dice, best_dice)
+            
             #np.savetxt(os.path.join(checkpoint_dir,str(epoch+1)+'Best_conf_mat.csv'), cm, delimiter = ",")
             save_checkpoint({
                         'epoch': epoch + 1,
@@ -244,6 +244,7 @@ def main():
                         'best_dice': best_dice,
                         'optimizer' : optimizer.state_dict(),
                     }, test_dice > best_dice, checkpoint=checkpoint_dir)
+            best_dice = max(test_dice, best_dice)
             print("checkpoint is saved")
         print("---------------------------------------------------------------------------------------------------------------------")
         print("Saving dice score file")
