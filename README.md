@@ -6,6 +6,10 @@ UNet3+
 
 
 [[2020] UNET 3+: A Full-Scale Connected UNet for Medical Image Segmentation (ICASSP 2020)](https://arxiv.org/pdf/2004.08790.pdf)
+[[2021] PVT V2: Improved Baselines with Pyramid Vision Transformer ](https://arxiv.org/abs/2106.13797.pdf)
+
+
+
 
 ## Dependencies
 
@@ -46,7 +50,7 @@ augmentation are tuned for the histpathological images
 ```shell script
 from utils.models import Unet3plus, Unet3plusGlcm
 
-model = Unet3plus(n_classes = num_classes)
+model = Unet3plus(n_classes = num_classes, encoder = config.encoder)
 ```
 ## Run locally
 **Note : Use Python 3**
