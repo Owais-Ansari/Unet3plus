@@ -157,7 +157,7 @@ def main():
     print("")
     
     device = torch.device('cuda:'+ str(gpu))
-    model = Unet3plus(n_class = num_classes).cuda(device=device)
+    model = Unet3plus(n_class = num_classes, encoder = config.encoder).cuda(device=device)
 
 #=============================================================Freezing backbone except head ==================================================================================
 #for name, param in model.segformer.encoder
