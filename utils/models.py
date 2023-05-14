@@ -40,10 +40,10 @@ def masking(in_channels):
    
 class UNet3plus(nn.Module):
 
-    def __init__(self, n_class):
+    def __init__(self, n_class, encoder = "pvt_v2_b2_li"):
         super().__init__()
                             
-        enc =  timm.create_model("pvt_v2_b2_li", pretrained = True)
+        enc =  timm.create_model(encoder, pretrained = True)
 
         self.econv0 = enc.patch_embed #64   ,256X256
         self.econv1 = enc.stages[0] #64    ,256X256
@@ -96,10 +96,10 @@ class UNet3plus(nn.Module):
     
 class Unet3plusGlcm(nn.Module):
 
-    def __init__(self, n_class):
+    def __init__(self, n_class, encoder = "pvt_v2_b2_li"):
         super().__init__()
                          
-        enc =  timm.create_model("pvt_v2_b2_li", pretrained = True)
+        enc =  timm.create_model(encoder, pretrained = True)
         
         self.econv0 = enc.patch_embed #64   ,256X256
         self.econv1 = enc.stages[0] #64    ,256X256
