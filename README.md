@@ -46,6 +46,12 @@ augmentation are tuned for the histpathological images
 	- Label Smoothing
 	- Gradient Clipping
 
+**Output**
+checkpoint.pth.tar
+bestmodel.pth.tar if best model is found 
+commandlines.txt
+tensorboard file to track the training curves
+traindice.mat and valdice.mat files which consists of path to each image and classwise dice
 	
 	
 **Usage**
