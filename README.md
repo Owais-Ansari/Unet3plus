@@ -84,6 +84,7 @@ optional arguments:
 	accum_iter=1 #Gradient Accumalation is True if accum_iter>1
 	label_sm = 0.08
 	freeze_backbone = False
+	encoder = 'pvt_v2_b2_li'
 	num_classes  = 5
 	train_image_path = '../dataset/train/images/'
 	train_mask_path = '../dataset/train/masks/'
