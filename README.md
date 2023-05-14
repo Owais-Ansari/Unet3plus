@@ -47,11 +47,12 @@ augmentation are tuned for the histpathological images
 	- Gradient Clipping
 
 **Output**
-checkpoint.pth.tar
-bestmodel.pth.tar if best model is found 
-commandlines.txt
-tensorboard file to track the training curves
-traindice.mat and valdice.mat files which consists of path to each image and classwise dice
+	- checkpoint.pth.tar
+	- bestmodel.pth.tar if best model is found 
+	- commandlines.txt
+	- log.txt
+	- tensorboard file to track the training curves
+	- train_dice_score .mat and val_dice_score.mat files which consists of path to each image and classwise dice
 	
 	
 **Usage**
