@@ -94,6 +94,9 @@ parser.add_argument('--label_sm', default= config.label_sm, type=float,
 parser.add_argument('--freeze_backbone', default= config.freeze_backbone, type=bool,help='')
 parser.add_argument('--ekd', default= False, type=bool,help='')
 parser.add_argument('--num_classes', type=int,  default = config.num_classes)
+parser.add_argument('--encoder', type=str,  default = config.encoder)
+
+
 
 args = parser.parse_args()
 state = {k: v for k, v in args._get_kwargs()}
@@ -115,6 +118,7 @@ ignore_label = config.ignore_label
 accum_iter= config.accum_iter
 label_sm = config.label_sm
 freeze_backbone = config.freeze_backbone
+encoder = config.encoder
 num_classes  = config.num_classes
 train_image_path = config.train_image_path
 train_mask_path = config.train_mask_path
