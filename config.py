@@ -1,0 +1,22 @@
+'''Segmentation Training'''
+	num_workers = 8
+	epochs = 50
+	train_batch = 8
+	lr = 0.0005
+	weight_decay = 0.0005
+	checkpoint = 'exp1'
+	resume = '' #path to checkpoint
+	gpu = 0
+	seed = 42
+	clip = None # else 0.99999
+	size = 512
+	ignore_label = 5 # should keep same as num_classes
+	accum_iter=1 #Gradient Accumalation is True if accum_iter>1
+	label_sm = 0.08
+	freeze_backbone = False
+	encoder = 'pvt_v2_b2_li'
+	num_classes  = 5
+	train_image_path = '../dataset/train/images/'
+	train_mask_path = '../dataset/train/masks/'
+	validation_image_path = '../dataset/val/images/'
+	validation_mask_path = '../dataset/val/masks/'              
