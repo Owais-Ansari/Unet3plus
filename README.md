@@ -97,5 +97,10 @@ The input images and target masks should have the same name.
 The ignore label in mask should have label value = 255
 
 
+## To-DO
+Deep Supervision
+
+
+
 
 
