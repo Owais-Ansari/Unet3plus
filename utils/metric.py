@@ -62,10 +62,10 @@ def seg_metric(out,target,path):
             binary_y = torch.zeros_like(target_class) 
             #WXH
             binary_y[target_class==j] = 1
-            binary_out[torch.argmax(out[i, :, :, :],   dim=0).detach().cpu()==j] = 1
+            binary_out[torch.argmax(out[i, :, :, :], dim=0).detach().cpu()==j] = 1
 
             binary_y[ignore == True] = 0
-            binary_out[ignore==True] = 0
+            binary_out[ignore == True] = 0
 
             dice = DiceScore(binary_out,binary_y)
             dice_temp[j]= np.float(dice.type('torch.FloatTensor'))
@@ -73,63 +73,13 @@ def seg_metric(out,target,path):
     batch_dice = 0
     for i in range(0,len(DICE_all)):
         img_mean_dice = np.mean([val for val in DICE_all[str(path[i])].values()])
+        DICE_all[str(path[i])] = img_mean_dice
         batch_dice = img_mean_dice + batch_dice 
     batch_dice = batch_dice / len(DICE_all)
     return DICE_all,batch_dice
             
 
-# def seg_metric(out,target,path):
-#     num_classes =  out.shape[1]
-#     DICE_all  = {}
-#     dice_temp = {}
-#     tmp = 0
-#     for i in range(0,out.shape[0]): # loop across batch size
-#         target_class = target[i, :, :] # multilabel mask
-#         ignore = (target_class == num_classes) #num_classes value is same as ignore label index
-#         for j in range(num_classes):
-#              #across classes
-#             binary_out =  torch.zeros_like(target_class)  
-#             binary_y = torch.zeros_like(target_class) 
-#                                        #WXH
-#             binary_y[target_class==j] = 1
-#             binary_out[torch.argmax(out[i, :, :, :],dim=0).detach().cpu()==j] = 1
-#             binary_y[ignore == True] = 0
-#             binary_out[ignore==True] = 0
-#             dice = DiceScore(binary_out,binary_y)
-#             dice_temp[j]= np.float(dice.type('torch.FloatTensor'))
-#     if (i+1)%4==0 or i==0:
-#         DICE_all[str(path[tmp])] = dice_temp
-#         tmp = tmp + 1
-#     batch_dice = 0
-#     for i in range(0,len(DICE_all)):
-#         img_mean_dice = np.mean([val for val in DICE_all[str(path[i])].values()])
-#         batch_dice = img_mean_dice + batch_dice 
-#     batch_dice = batch_dice / len(DICE_all)
-#     return DICE_all,batch_dice
-            
 
-            
-            
-            
-            
-        
-        
-        
-        
-    #
-    # for i in range(0,num_classes,1):
-    #     binary_out = torch.zeros_like(out.cpu())
-    #     binary_out[out.cpu()==i] = 1
-    #     binary_y = torch.zeros_like(target.squeeze(1))
-    #     binary_y[target==i] = 1
-    #     element_dice = DiceScore(binary_out, binary_y)
-    #     element_iou = IoU(binary_out, binary_y)
-    #     Temp_Class_1[i].append(list(element_dice.numpy()))
-    #     Temp_Class_2[i].append(list(element_iou.numpy()))
-    #     if i!=0:
-    #         Temp_1.append(list(element_dice.numpy()))
-    #         Temp_2.append(list(element_iou.numpy()))
-    # return 
 
 
 
