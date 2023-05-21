@@ -158,7 +158,7 @@ def main():
     
     device = torch.device('cuda:'+ str(gpu))
     
-   # model = Unet3plus(n_class = num_classes).cuda(device=device)
+    model = Unet3plus(n_class = num_classes).cuda(device=device)
     # id2label = {0:'Background', 1:'G3', 2:'G4',3:'G5'}#4:'necrosis',5:'peri'}
     # label2id = {v: k for k, v in id2label.items()}
     # model = SegformerForSemanticSegmentation.from_pretrained('nvidia/mit-b1', 
