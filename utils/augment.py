@@ -56,11 +56,12 @@ class train_aug(object):
     Input: a numpy image (dim,dim,channel) and a mask (dim,dim)
     return a torch tensor for image and mask
     '''
-    def __init__(self,hed=0.04):
+    def __init__(self,hed=0.04,size = 512):
         
         self.HED = HEDJitter(hed)
+        self.size = size
         self.color = Compose([
-                        Resize(512, 512),
+                        Resize(self.size, self.size),
                         #RGBShift(),
                         #OneOf([
                         Equalize(p=0.05),
@@ -69,7 +70,6 @@ class train_aug(object):
                         Blur(),
                         RandomBrightnessContrast(),
                         ChannelShuffle(),
-                        
                         
                              ])
                         
@@ -104,13 +104,15 @@ class val_aug(object):
     Input: a numpy image (dim,dim,channel) and a mask (dim,dim)
     return a torch tensor for image and mask
     '''
-    def __init__(self):
+    def __init__(self,size = 512):
+        self.size = size
         self.norm = Compose([
-                Resize(512, 512),
+                Resize(self.size, self.size),
                 Normalize(mean=mean, std=std),
                 ToTensorV2()])
-    def __call__(self,img,mask):
-        input_img = np.asarray(img)
+        
+    def __call__(self,image,mask):
+        input_img = np.asarray(image)
         input_mask = np.asarray(mask)
         transformed = self.norm(image = input_img,mask = input_mask)
         return transformed['image'], transformed['mask']
@@ -118,39 +120,3 @@ class val_aug(object):
 
 
 
-# class aug(object):
-#     def __init__(self):
-#         self.morphology = A.Compose([
-#             A.OneOf([
-#                 A.GaussianBlur(blur_limit=(3, 7), sigma_limit=0.1),
-#                 A.Sharpen(alpha=(0.25, 0.5), lightness=(0.5, 1.0)),
-#             ], p=0.75),
-#             A.RandomScale([0.8, 1.2], 2),
-#             A.transforms.GaussNoise(var_limit=[0.0, 0.1])
-#         ])
-#
-#numpy
-#
-#         self.bc = A.Compose([A.RandomBrightnessContrast(brightness_limit=0.35, contrast_limit=0.5)])
-#         self.hed_only = HEDJitter(theta)
-#
-#     def __call__(self, input):
-#
-#         input = np.asarray(input)
-#         transformed = self.morphology(image=input)
-#
-#         # random elastic deformation
-#         alpha = np.random.randint(low=80, high=120)
-#         sigma = np.random.randint(low=9, high=11)
-#         transformed['image'] = A.elastic_transform(transformed['image'], alpha=alpha,
-#                                           sigma=sigma, alpha_affine=50, interpolation=cv2.INTER_LINEAR, border_mode=cv2.BORDER_REFLECT)
-#
-#         # color aug
-#         transformed = self.bc(image=transformed['image'])
-#         transformed['image'] = self.hed_only(transformed['image'])
-#
-#         transformed['image'] = Image.fromarray(transformed['image'].astype('uint8'), 'RGB')
-#
-#         return transformed['image']
-    
-    
