@@ -52,7 +52,7 @@ augmentation are tuned for the histpathological images
 - commandlines.txt
 - log.txt
 - tensorboard file to track the training curves
-- train_dice_score .mat and val_dice_score.mat files which consists of path to each image and classwise dice
+- train_dice_score .mat and val_dice_score.mat files which consists of path to each image and image mean dice
 
 	
 **Usage**
