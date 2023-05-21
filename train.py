@@ -1,5 +1,5 @@
 '''
-Created on 26-April-2022
+Created on 29-June-2022
 @author: owaish
 
 '''
@@ -31,7 +31,7 @@ from utils import Logger, AverageMeter, accuracy, mkdir_p, savefig
 #from torch_ema import ExponentialMovingAverage
 from utils.scheduler import TransformerLRScheduler
 from numpy import record
-from utils.losses import poly_cross_entropy1,DiceLoss
+from utils.losses import poly_cross_entropy1, DiceLoss
 from utils.eval import pixel_acc
 from sklearn.metrics import balanced_accuracy_score
 
@@ -40,8 +40,12 @@ from utils.augment import train_aug, val_aug
 #from DiceLoss import DiceLoss
 
 import segmentation_models_pytorch as smp
-from utils.models import Unet3plus
+from utils.models import Unet3plus, SegNext, UneXt50
 import config
+
+
+from transformers import SegformerFeatureExtractor
+from transformers import SegformerForSemanticSegmentation
 
 # #===================================Arguments-start=======================================================================
 parser = argparse.ArgumentParser(description = 'Segmentation Training')
@@ -94,9 +98,6 @@ parser.add_argument('--label_sm', default= config.label_sm, type=float,
 parser.add_argument('--freeze_backbone', default= config.freeze_backbone, type=bool,help='')
 parser.add_argument('--ekd', default= False, type=bool,help='')
 parser.add_argument('--num_classes', type=int,  default = config.num_classes)
-parser.add_argument('--encoder', type=str,  default = config.encoder)
-
-
 
 args = parser.parse_args()
 state = {k: v for k, v in args._get_kwargs()}
@@ -118,7 +119,6 @@ ignore_label = config.ignore_label
 accum_iter= config.accum_iter
 label_sm = config.label_sm
 freeze_backbone = config.freeze_backbone
-encoder = config.encoder
 num_classes  = config.num_classes
 train_image_path = config.train_image_path
 train_mask_path = config.train_mask_path
@@ -146,9 +146,9 @@ def main():
     start_epoch = 0
     #Create dataset
 
-    #Loading dataset
-    training_dataset = ProstateGleasonDataset(train_image_path, train_mask_path, ignore_label = num_classes, tfms = train_aug)
-    validation_dataset = ProstateGleasonDataset(validation_image_path, validation_mask_path, ignore_label = num_classes, tfms = val_aug)
+    #Loading datase
+    training_dataset = ProstateGleasonDataset(train_image_path, train_mask_path, ignore_label = num_classes, tfms = train_aug(size=config.size))
+    validation_dataset = ProstateGleasonDataset(validation_image_path, validation_mask_path, ignore_label = num_classes, tfms = val_aug(size=config.size))
 
     trainloader = torch.utils.data.DataLoader(training_dataset, batch_size=train_batch,  shuffle = True,  num_workers=num_workers)
     valloader   =   torch.utils.data.DataLoader(validation_dataset, batch_size=train_batch, shuffle=False, num_workers=num_workers)    
@@ -157,8 +157,19 @@ def main():
     print("")
     
     device = torch.device('cuda:'+ str(gpu))
-    model = Unet3plus(n_class = num_classes, encoder = config.encoder).cuda(device=device)
+    
+   # model = Unet3plus(n_class = num_classes).cuda(device=device)
+    # id2label = {0:'Background', 1:'G3', 2:'G4',3:'G5'}#4:'necrosis',5:'peri'}
+    # label2id = {v: k for k, v in id2label.items()}
+    # model = SegformerForSemanticSegmentation.from_pretrained('nvidia/mit-b1', 
+    #                                                          ignore_mismatched_sizes=True,
+    #                                                          num_labels=num_classes, 
+    #                                                          id2label=id2label, 
+    #                                                          label2id=label2id,
+    #                                                          reshape_last_stage=True).cuda(device=device)
 
+
+    #model.load_state_dict(torch.load(pathh),strict = False);
 #=============================================================Freezing backbone except head ==================================================================================
 #for name, param in model.segformer.encoder
     if freeze_backbone:
@@ -171,7 +182,15 @@ def main():
     else:
         #2.Optimizer 
         optimizer = optim.AdamW(model.parameters(), lr = lr)
-
+#===================== ========================================Exponential Moving Average====================================================================================================
+    # if args.ema:
+    #     ema = ExponentialMovingAverage(model.parameters(), decay=args.ema)
+    # else:
+    #     ema = None
+#====================================================================================================================================================
+    #model = nn.DataParallel(model)
+    #print(model)
+    #summary(model,input_size=(3,args.size,args.size))
     model = model.to(device)
     cudnn.benchmark = True
     print('Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
@@ -181,6 +200,7 @@ def main():
     criterion = {}
     criterion['ce'] = nn.CrossEntropyLoss(ignore_index = ignore_label,label_smoothing = label_sm)
     criterion['dice'] = DiceLoss(n_classes=num_classes)
+    #criterion['pce'] = poly_cross_entropy1(num_classes=num_classes, ignore_label=num_classes)
     #Resume
     title = config.checkpoint
     checkpoint_dir = os.path.join('checkpoints', title)
@@ -229,16 +249,16 @@ def main():
         writer.add_scalar('val/loss', test_loss, (epoch + 1))
         writer.add_scalar('val/acc', test_acc, (epoch + 1))
         writer.add_scalar('val/dice', test_dice, (epoch + 1))
-               
+        #writer.add_scalar('val/precision', test_precision, (epoch + 1))
+        #writer.add_scalar('val/recall', test_recall, (epoch + 1))        
         
         
         #append logger file
         logger.append([state['lr'], train_loss, test_loss, train_acc, test_acc, train_dice,test_dice])
-        
+        #logger.append([state['lr'], train_loss, test_loss, train_acc, test_acc])
         
         #save model 
         if test_dice > best_dice:
-            
             #np.savetxt(os.path.join(checkpoint_dir,str(epoch+1)+'Best_conf_mat.csv'), cm, delimiter = ",")
             save_checkpoint({
                         'epoch': epoch + 1,
@@ -270,28 +290,30 @@ def train(trainloader, model, scaler, criterion, optimizer, scheduler, epoch, us
     img_path = []
     pred_name =[] 
     gt_name = []
-    class_wise_dice = []
+    img_wise_dice = []
     progress_bar = tqdm(trainloader)
     
     for batch_idx, data in enumerate(progress_bar):
 
-        inputs = data['image']
+        inputs  =  data['image']
         targets = data['label']
         inputs, targets = inputs.cuda(torch.device('cuda:'+ str(gpu))), targets.cuda(torch.device('cuda:'+ str(gpu)))
         inputs, targets, paths = inputs, targets, data['path']       
         inputs, targets  = inputs.type('torch.cuda.FloatTensor'), targets
         
             
-        #compute output (using mixed precision)
+        # compute output (using mixed precision)
         with torch.set_grad_enabled(True):
         #optimizer.zero_grad()
             with torch.cuda.amp.autocast():
                 outputs = model(inputs)
+                #outputs = F.interpolate(outputs.logits, size=targets.shape[-2:], mode="bilinear")
                 ce_loss = criterion['ce'](outputs,targets.long()).mean()
+                #pce_loss = poly_cross_entropy1(outputs,targets.long(), num_classes=num_classes, ignore_label=num_classes,gpu=gpu)
                 #dice_loss = criterion['dice'](outputs,targets.long())
-                loss =  1*ce_loss #+ 0*dice_loss
+                loss =  1*ce_loss# + 1*pce_loss+ 0*dice_loss
             
-        dice_all, mean_dice = metric.seg_metric(outputs,targets,paths)
+        dice_all, mean_dice = metric.seg_metric(outputs, targets, paths)
         dice = mean_dice
         # measure accuracy and record loss5xWSI
         acc = pixel_acc(outputs.data, targets.data)
@@ -301,7 +323,7 @@ def train(trainloader, model, scaler, criterion, optimizer, scheduler, epoch, us
 #================================================ Dump misclassified paths (examples which are hard to learn) ===========================================================
         for idp, pth in enumerate(list(dice_all.keys())):
             img_path.append(pth)
-            class_wise_dice.append(list(dice_all.values())[idp])
+            img_wise_dice.append(list(dice_all.values())[idp])
 #============================================== EMA+Gradient accumulation ==========================================================================================
         #Gradient accumatlation if  accum_iter > 1
         loss = loss / accum_iter
@@ -342,7 +364,7 @@ def train(trainloader, model, scaler, criterion, optimizer, scheduler, epoch, us
                     ))
     model.eval()
  
-    savemat(checkpoint_dir + 'train_dice_score.mat', mdict = {'imgs_path':img_path,  'class_wise_dice': class_wise_dice})
+    savemat(checkpoint_dir +'/train_dice_score.mat', mdict = {'imgs_path':img_path,  'img_wise_dice': img_wise_dice})
     return losses.avg, top1.avg, dce.avg
     #-------------------------------------------------------------------------------------------------------------------------------
 
@@ -357,7 +379,7 @@ def test(testloader, model, criterion, epoch, use_cuda=True, writer=None, num_cl
     pre = AverageMeter()
     rec = AverageMeter()
     conf_matrix = np.zeros((num_classes, num_classes))
-    class_wise_dice = []
+    img_wise_dice = []
     img_path = []
     #switch to evaluate mode
     model.eval()
@@ -368,18 +390,17 @@ def test(testloader, model, criterion, epoch, use_cuda=True, writer=None, num_cl
         # measure data loading time
         data_time.update(time.time() - end)
         if use_cuda:
-           
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             inputs = data['image']
             targets = data['label']
-            paths = data['path']  
-             
+            paths = data['path']
             inputs, targets  = inputs.cuda(torch.device('cuda:'+ str(gpu))), targets.cuda(torch.device('cuda:'+ str(gpu))) 
             
         with torch.no_grad():
         #optimizer.zero_grad()
             with torch.cuda.amp.autocast():
                 outputs = model(inputs)
+                #outputs = F.interpolate(outputs.logits, size=targets.shape[-2:], mode="bilinear")
                 ce_loss = criterion['ce'](outputs,targets.long()).mean()
                 #dice_loss = criterion['dice'](outputs,targets.long())
                 loss =  1*ce_loss #+ 0*dice_loss
@@ -390,7 +411,7 @@ def test(testloader, model, criterion, epoch, use_cuda=True, writer=None, num_cl
         
         for idp, pth in enumerate(list(dice_all.keys())):
             img_path.append(pth)
-            class_wise_dice.append(list(dice_all.values())[idp])
+            img_wise_dice.append(list(dice_all.values())[idp])
 
       
         if conf_mat:
@@ -416,12 +437,13 @@ def test(testloader, model, criterion, epoch, use_cuda=True, writer=None, num_cl
             top1 = top1.avg,
             dice1 = dce.avg
         ))
-    savemat(checkpoint_dir + 'val_dice_score.mat', mdict = {'imgs_path':img_path,'class_wise_dice': class_wise_dice})
-
+    savemat(checkpoint_dir+'/val_dice_score.mat', mdict = {'imgs_path':img_path,'img_wise_dice': img_wise_dice})
+    #if conf_mat:
+    #    print(conf_matrix)
     return (losses.avg, top1.avg, dce.avg, conf_matrix)
 
 
-def save_checkpoint(state, is_best, checkpoint='checkpoint', filename='checkpoint.pth.tar'):
+def save_checkpoint(state, is_best, checkpoint='checkpoint', filename = 'checkpoint.pth.tar'):
     #filepath = os.path.join(checkpoint, str(state['epoch'])+'_'+filename)
     filepath = os.path.join(checkpoint, str(filename))
     torch.save(state, filepath)
