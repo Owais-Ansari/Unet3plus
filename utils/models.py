@@ -161,7 +161,6 @@ class Unet3plusGlcm(nn.Module):
         out  = self.conv_last(dec1)
         
         out = self.dotProduct(out, cls_branch_max)
-        out = self.dotProduct(out, cls_branch_max)
         out = self.upsample(self.upsample(out))
         return out
     
