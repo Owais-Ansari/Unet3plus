@@ -163,4 +163,116 @@ class Unet3plusGlcm(nn.Module):
         out = self.dotProduct(out, cls_branch_max)
         out = self.upsample(self.upsample(out))
         return out
+
+class Unet3plus(nn.Module):
+    def __init__(self, num_classes, backbone="convnext_tiny"):
+        super().__init__()
+        enc =  timm.create_model(backbone, pretrained = True)
+        self.econv0 = enc.stem          #96   ,256X256
+        self.econv1 = enc.stages[0]     #96
+        self.econv2 = enc.stages[1]     #192
+        self.econv3 = enc.stages[2]     #384
+        self.econv4 = enc.stages[3]     #768
     
+        self.dconv4 =  double_conv(768, 384)  #,
+        self.single4 = single_conv(1056,384)
+        
+        self.dconv3 =  double_conv(384, 192)
+        self.single3 = single_conv(480,192)
+        
+        self.dconv2 = double_conv(192, 96)
+        self.dconv1 = double_conv(192, 64)
+        #self.dconv0 = double_conv(96+64, 32)
+        self.maxpool = nn.MaxPool2d(2)
+        self.upsample = nn.Upsample(scale_factor=2, mode = 'bilinear', align_corners=True)
+        self.drop = nn.Dropout2d(0.1)
+        self.segment_head =  nn.Conv2d(64, num_classes, 3, padding = 'same')
+        
+    def forward(self, x):
+             
+        conv0 = self.econv0(x) # 512X512 #96
+        conv1 = self.econv1(conv0)# 256X256 #96
+        conv2 = self.econv2(conv1) #192
+        conv3 = self.econv3(conv2)# 64X64 #384
+        conv4 = self.econv4(conv3)# 32X32 #768
+        
+        dec4 = self.dconv4(conv4)
+        dec4 = torch.cat([self.upsample(dec4), conv3, self.maxpool(conv2), self.maxpool(self.maxpool(conv1))], dim=1)# 64X64
+        
+        dec4 = self.single4(dec4)
+        dec3 = self.dconv3(dec4)
+        #dec3 = torch.cat([self.upsample(dec3), conv2[0]], dim=1)# 128X128
+        dec3 = torch.cat([self.upsample(dec3), conv2,self.maxpool(conv1)], dim=1)# 128X128
+        
+        dec3 = self.single3(dec3)
+        dec2 = self.dconv2(dec3)        
+        dec2 = torch.cat([self.upsample(dec2), conv1], dim=1)# 256X256
+        dec2 = self.upsample(self.upsample(dec2))
+        dec1 = self.dconv1(dec2)
+        dec1 = self.drop(dec1)
+        out = self.segment_head(dec1)
+        return out
+    
+    
+class Unet3plus_deepsupervision(nn.Module):
+    def __init__(self, num_classes, backbone="convnext_tiny"):
+        super().__init__()
+        enc =  timm.create_model(backbone, pretrained = True)
+        self.econv0 = enc.stem          #96   ,256X256
+        self.econv1 = enc.stages[0]     #96
+        self.econv2 = enc.stages[1]     #192
+        self.econv3 = enc.stages[2]     #384
+        self.econv4 = enc.stages[3]     #768
+    
+        self.dconv4 =  double_conv(768, 384)  #,
+        self.single4 = single_conv(1056,384)
+        
+        self.dconv3 =  double_conv(384, 192)
+        self.single3 = single_conv(480,192)
+        
+        self.dconv2 = double_conv(192, 96)
+        self.dconv1 = double_conv(192, 64)
+        #self.dconv0 = double_conv(96+64, 32)
+        self.maxpool = nn.MaxPool2d(2)
+        self.upsample = nn.Upsample(scale_factor=2, mode = 'bilinear', align_corners=True)
+        self.drop = nn.Dropout2d(0.1)
+        self.segment_head1 =  nn.Conv2d(64, num_classes, 3, padding = 'same')
+        self.segment_head2 =  nn.Conv2d(96, num_classes, 3, padding = 'same')
+        self.segment_head3 =  nn.Conv2d(192, num_classes, 3, padding = 'same')
+        
+    def forward(self, x):
+             
+        conv0 = self.econv0(x) # 512X512 #96
+        conv1 = self.econv1(conv0)# 256X256 #96
+        conv2 = self.econv2(conv1) #192
+        conv3 = self.econv3(conv2)# 64X64 #384
+        conv4 = self.econv4(conv3)# 32X32 #768
+        
+        dec4 = self.dconv4(conv4)
+        dec4 = torch.cat([self.upsample(dec4), conv3, self.maxpool(conv2), self.maxpool(self.maxpool(conv1))], dim=1)# 64X64
+        
+        dec4 = self.single4(dec4)
+        dec3 = self.dconv3(dec4)
+    
+        out3 = self.upsample(dec3)
+        out3 = self.drop(out3)
+        out3 = self.segment_head3(out3)
+        out3 = self.upsample(out3)
+    
+        dec3 = torch.cat([self.upsample(dec3), conv2,self.maxpool(conv1)], dim=1)# 128X128
+        
+        dec3 = self.single3(dec3)
+        dec2 = self.dconv2(dec3)
+        
+        out2 = self.upsample(dec2)
+        out2 = self.drop(out2)
+        out2 = self.segment_head2(out2)
+        out2 = self.upsample(out2)
+        
+        
+        dec2 = torch.cat([self.upsample(dec2), conv1], dim=1)# 256X256
+        dec2 = self.upsample(self.upsample(dec2))
+        dec1 = self.dconv1(dec2)
+        dec1 = self.drop(dec1)
+        out1 = self.segment_head1(dec1)
+        return out1,out2,out3
