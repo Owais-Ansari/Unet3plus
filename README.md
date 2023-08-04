@@ -64,9 +64,9 @@ augmentation are tuned for the histpathological images
 	
 **Usage**
 ```shell script
-from utils.models import Unet3plus, Unet3plusGlcm
+from utils.models import Unet3plus, Unet3plusGlcm, Unet3plus_deepsupervision
 
-model = Unet3plus(n_classes = num_classes, encoder = config.encoder)
+model = Unet3plus(num_classes = num_classes, encoder = config.encoder)
 ```
 ## Run locally
 **Note : Use Python 3**
