@@ -40,7 +40,7 @@ def masking(in_channels):
    
 class UNet3plus(nn.Module):
 
-    def __init__(self, n_class, encoder = "pvt_v2_b2_li"):
+    def __init__(self, num_classes, encoder = "pvt_v2_b2_li"):
         super().__init__()
                             
         enc =  timm.create_model(encoder, pretrained = True)
@@ -64,7 +64,7 @@ class UNet3plus(nn.Module):
         
         self.maxpool = nn.MaxPool2d(2)
         self.upsample = nn.Upsample(scale_factor=2, mode = 'bilinear', align_corners=True)
-        self.conv_last = nn.Conv2d(32, n_class, 1)
+        self.conv_last = nn.Conv2d(32, num_classes, 1)
         
         
     def forward(self, x):
@@ -96,7 +96,7 @@ class UNet3plus(nn.Module):
     
 class Unet3plusGlcm(nn.Module):
 
-    def __init__(self, n_class, encoder = "pvt_v2_b2_li"):
+    def __init__(self, num_classes, encoder = "pvt_v2_b2_li"):
         super().__init__()
                          
         enc =  timm.create_model(encoder, pretrained = True)
@@ -119,7 +119,7 @@ class Unet3plusGlcm(nn.Module):
         
         self.maxpool = nn.MaxPool2d(2)
         self.upsample = nn.Upsample(scale_factor=2, mode = 'bilinear', align_corners=True)
-        self.conv_last = nn.Conv2d(32, n_class, 1)
+        self.conv_last = nn.Conv2d(32, num_classes, 1)
         self.cls = masking(512)
         
     def dotProduct(self, seg,cls):
@@ -165,9 +165,9 @@ class Unet3plusGlcm(nn.Module):
         return out
 
 class Unet3plus(nn.Module):
-    def __init__(self, num_classes, backbone="convnext_tiny"):
+    def __init__(self, num_classes, encoder="convnext_tiny"):
         super().__init__()
-        enc =  timm.create_model(backbone, pretrained = True)
+        enc =  timm.create_model(encoder, pretrained = True)
         self.econv0 = enc.stem          #96   ,256X256
         self.econv1 = enc.stages[0]     #96
         self.econv2 = enc.stages[1]     #192
@@ -215,9 +215,9 @@ class Unet3plus(nn.Module):
     
     
 class Unet3plus_deepsupervision(nn.Module):
-    def __init__(self, num_classes, backbone="convnext_tiny"):
+    def __init__(self, num_classes, encoder="convnext_tiny"):
         super().__init__()
-        enc =  timm.create_model(backbone, pretrained = True)
+        enc =  timm.create_model(encoder, pretrained = True)
         self.econv0 = enc.stem          #96   ,256X256
         self.econv1 = enc.stages[0]     #96
         self.econv2 = enc.stages[1]     #192
