@@ -8,7 +8,9 @@ UNet3+
 
 
 [[2021] PVT V2: Improved Baselines with Pyramid Vision Transformer ](https://arxiv.org/abs/2106.13797.pdf)
+
 [[2020] ConvNext: A ConvNet for the 2020s](https://arxiv.org/pdf/2201.03545.pdf)
+
 [[2020] UNET 3+: A Full-Scale Connected UNet for Medical Image Segmentation (ICASSP 2020)](https://arxiv.org/pdf/2004.08790.pdf)
 
 
