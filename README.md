@@ -37,10 +37,10 @@ UNet3+
 - pandas == 2.0.1
 
 
-**For academic communication only**
+**augmentations**
 
 
-augmentation are tuned for the histpathological images
+augmentations are tuned for the histopathological images
 	- Equalize, HueSaturationValue, ColorJitter, Blur, RandomBrightnessContrast, ChannelShuffle
 	- Transpose, RandomRotate90, Flip
 	
